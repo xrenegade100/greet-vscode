@@ -9,7 +9,9 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:plaintext"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -28,6 +30,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
@@ -40,5 +43,9 @@
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "axios": "^1.4.0"
   }
 }
