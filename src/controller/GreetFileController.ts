@@ -6,29 +6,33 @@ import GreetIssue from '../model/GreetIssue';
 import GreetIssueType from '../model/GreetIssueType';
 
 class GreetFileController {
-  public static analyzer(
+  public static async analyzer(
     server: ServerStatus | undefined,
     diagnosticCollection: vscode.DiagnosticCollection,
     document: vscode.TextDocument,
-  ) {
-    axios
-      .post(`http://${server?.getHostname()}:${server?.getPort()}/predict`, {
-        code: document.getText(),
-      })
-      .then((response) => {
-        if (response.data) {
-          const greetIssue: GreetIssue[] = this.fromResponse(response.data);
-          diagnosticCollection.set(document.uri, this.report(greetIssue));
-        }
-      })
-      .catch(() => {
-        vscode.window.showErrorMessage(
-          'Error during greet analysis, possibly due to a lack of server connection.',
-        );
-        throw new Error(
-          'Error during greet analysis, possibly due to a lack of server connection.',
-        );
-      });
+  ): Promise<readonly vscode.Diagnostic[] | undefined> {
+    try {
+      const response = await axios.post(
+        `http://${server?.getHostname()}:${server?.getPort()}/predict`,
+        {
+          code: document.getText(),
+        },
+      );
+
+      if (response.data) {
+        const greetIssue: GreetIssue[] = this.fromResponse(response.data);
+        diagnosticCollection.set(document.uri, this.report(greetIssue));
+        return diagnosticCollection.get(document.uri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        'Error during greet analysis, possibly due to a lack of server connection.',
+      );
+      throw new Error(
+        'Error during greet analysis, possibly due to a lack of server connection.',
+      );
+    }
+    return undefined;
   }
 
   private static report(greetIssue: GreetIssue[]) {
@@ -78,9 +82,12 @@ class GreetFileController {
           type = GreetIssueType.ATTRIBUTEOPPOSITECOMMENT;
           break;
         case 2:
-          type = GreetIssueType.NOTIMPLEMENTEDCONDITION;
+          type = GreetIssueType.CLEAR;
           break;
         case 3:
+          type = GreetIssueType.NOTIMPLEMENTEDCONDITION;
+          break;
+        case 4:
           type = GreetIssueType.GETMORETHENACCESSOR;
           break;
         default:
