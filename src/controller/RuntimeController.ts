@@ -56,6 +56,7 @@ class RuntimeController {
                 vscode.window.showErrorMessage(
                   'Error during extension installation, possibly due to a lack of internet connection. Please try again.',
                 );
+                throw new Error('Error during extension installation.');
               });
           });
         });
@@ -64,6 +65,7 @@ class RuntimeController {
         vscode.window.showErrorMessage(
           'Error during extension installation, possibly due to a lack of internet connection. Please try again.',
         );
+        throw new Error('Error during extension installation.');
       });
   }
 
