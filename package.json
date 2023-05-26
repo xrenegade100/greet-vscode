@@ -1,10 +1,16 @@
 {
   "name": "greet",
-  "displayName": "greet",
-  "description": "",
+  "displayName": "Greet",
+  "publisher": "Mantra Coding",
+  "description": "Linguistic antipattern detector for Python code",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.78.0"
+  },
+  "icon": "icon/logo.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xrenegade100/greet-vscode"
   },
   "categories": [
     "Other"
@@ -13,14 +19,7 @@
     "onLanguage:plaintext"
   ],
   "main": "./out/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "greet.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
+  "contributes": {},
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
