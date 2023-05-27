@@ -28,3 +28,11 @@ This Visual Studio Code extension detects linguistic antipatterns in Python sour
 2. As you type or modify the code, the extension will analyze it for linguistic antipatterns.
 3. If any antipatterns are detected, you will receive real-time feedback through diagnostics.
 4. Use the provided suggestions and recommendations to refactor and improve your code.
+
+## Contribution
+
+Contributions to this extension are welcome. If you encounter any issues or have suggestions for improvement, please create an issue on the GitHub repository.
+
+## License
+
+This extension is licensed under the [MIT License](https://opensource.org/licenses/MIT).
