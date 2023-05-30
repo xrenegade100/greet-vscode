@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as childProcess from 'child_process';
-// eslint-disable-next-line no-unused-vars
 import axios from 'axios';
+import { chmodSync } from 'fs';
 import ServerStatus from '../model/ServerStatus';
 
 class ServerStatusController {
@@ -18,8 +18,9 @@ class ServerStatusController {
     const greetCmdDirectory = path.dirname(greetCmdPath);
 
     process.chdir(greetCmdDirectory);
+    chmodSync(greetCmdPath, 0o755);
 
-    childProcess.exec(greetCmdPath, (err) => {
+    childProcess.exec(`${greetCmdPath} -s`, (err) => {
       console.log(err);
     });
     return true;

@@ -43,12 +43,12 @@ class RuntimeController {
                 responseType: 'stream',
               })
               .then(async (responseModel) => {
-                fs.mkdirSync(`${os.homedir()}\\.greet`, {
+                fs.mkdirSync(path.join(os.homedir(), '.greet'), {
                   recursive: true,
                 });
                 await FileManager.saveFile(
                   responseModel,
-                  `${os.homedir()}\\.greet\\greet`,
+                  path.join(os.homedir(), '.greet', 'greet'),
                 );
               })
               .catch((err) => {
