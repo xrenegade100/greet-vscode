@@ -18,7 +18,7 @@ This Visual Studio Code extension detects linguistic antipatterns in Python sour
 ## Installation
 
 1. Open Visual Studio Code.
-2. Go to the Extensions view and search for "Extension Name".
+2. Go to the Extensions view and search for "greet".
 3. Click on the "Install" button to install the extension.
 4. Once installed, the extension will be active and ready to detect linguistic antipatterns in Python code.
 
@@ -27,7 +27,7 @@ This Visual Studio Code extension detects linguistic antipatterns in Python sour
 1. Open a Python file in Visual Studio Code.
 2. As you type or modify the code, the extension will analyze it for linguistic antipatterns.
 3. If any antipatterns are detected, you will receive real-time feedback through diagnostics.
-4. Use the provided suggestions and recommendations to refactor and improve your code.
+4. Use the provided diagnostics to refactor and improve your code.
 
 ## Contribution
 
