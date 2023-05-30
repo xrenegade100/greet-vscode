@@ -19,7 +19,16 @@
     "onLanguage:plaintext"
   ],
   "main": "./out/extension.js",
-  "contributes": {},
+  "contributes": {
+    "statusbar": [
+      {
+        "id": "greet.install",
+        "alignment": "right",
+        "priority": 100,
+        "text": ""
+      }
+    ]
+  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",

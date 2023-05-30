@@ -3,20 +3,19 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import axios from 'axios';
 import FileManager from '../manager/FileManager';
 
 class RuntimeController {
   private static urlInstallWin =
-    'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-vscode-server-runtime-win.zip';
+    'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-cli-win-0.0.1-alpha.1.zip';
 
   private static urlInstallLinux =
-    'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-vscode-server-runtime-linux.zip';
-
-  // private static urlModel = "https://huggingface.co/mantra-coding/alBERTo/resolve/main/alBERTo-v1.0.0";
+    'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-cli-linux-0.0.1-alpha.1.zip';
 
   private static urlModel =
-    'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-vscode-server-runtime-win.zip';
+    'https://huggingface.co/mantra-coding/alBERTo/resolve/main/alBERTo-v1.0.0';
 
   private static destinationFolder =
     process.platform === 'win32' ? process.env.APPDATA : process.env.HOME;
@@ -44,15 +43,16 @@ class RuntimeController {
                 responseType: 'stream',
               })
               .then(async (responseModel) => {
+                fs.mkdirSync(`${os.homedir()}\\.greet`, {
+                  recursive: true,
+                });
                 await FileManager.saveFile(
                   responseModel,
-                  `${filePath.substring(
-                    0,
-                    filePath.length - 4,
-                  )}\\src\\greet_predictor_module\\greet`,
+                  `${os.homedir()}\\.greet\\greet`,
                 );
               })
-              .catch(() => {
+              .catch((err) => {
+                console.log(err);
                 vscode.window.showErrorMessage(
                   'Error during extension installation, possibly due to a lack of internet connection. Please try again.',
                 );

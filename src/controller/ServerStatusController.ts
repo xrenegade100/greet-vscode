@@ -1,5 +1,8 @@
 import * as path from 'path';
 import * as childProcess from 'child_process';
+// eslint-disable-next-line no-unused-vars
+import axios from 'axios';
+import ServerStatus from '../model/ServerStatus';
 
 class ServerStatusController {
   public static start(): boolean {
@@ -8,8 +11,8 @@ class ServerStatusController {
         ? process.env.APPDATA
         : process.env.HOME) as string,
       process.platform === 'win32'
-        ? 'greet-vscode-server-runtime-win'
-        : 'greet-vscode-server-runtime-linux',
+        ? 'greet-cli-win-0.0.1-alpha.1'
+        : 'greet-cli-linux-0.0.1-alpha.1',
       process.platform === 'win32' ? 'greet.cmd' : 'greet.sh',
     );
     const greetCmdDirectory = path.dirname(greetCmdPath);
@@ -19,18 +22,27 @@ class ServerStatusController {
     childProcess.exec(greetCmdPath, (err) => {
       console.log(err);
     });
-
-    // TO DO Check if the server is started
-
     return true;
   }
 
-  public static stop(): boolean {
-    return true;
+  public static async stop(server: ServerStatus | undefined): Promise<void> {
+    server?.setStatus('stop');
+    await axios.get(
+      `http://${server?.getHostname()}:${server?.getPort()}/quit`,
+    );
   }
 
-  public static isStart(): boolean {
-    return true;
+  public static async isStart(
+    // eslint-disable-next-line no-unused-vars
+    server: ServerStatus | undefined,
+  ): Promise<boolean> {
+    const response = await axios
+      .get(`http://${server?.getHostname()}:${server?.getPort()}/status`)
+      .catch(() => {});
+    if (response !== undefined) {
+      return true;
+    }
+    return false;
   }
 }
 
