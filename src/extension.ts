@@ -21,35 +21,30 @@ const statusBarItem = vscode.window.createStatusBarItem(
 const extension: Extension = Extension.getInstance(new ServerStatus());
 
 export async function activate(context: vscode.ExtensionContext) {
+  statusBarItem.command = 'serverStatus';
   let stopProgressBar = false;
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
   if (!RuntimeController.isInstalledRuntime()) {
     statusBarItem.text = '$(sync~spin) Installing greet';
     await Promise.all([
-      RuntimeController.downloadRuntime()
-        .then(async () => {
-          if (!RuntimeController.isInstalledModel()) {
-            await RuntimeController.downloadModel();
+      RuntimeController.downloadRuntime().then(async () => {
+        if (!RuntimeController.isInstalledModel()) {
+          await RuntimeController.downloadModel();
+        }
+        ServerStatusController.start(extension.getServerStatus());
+        let flagStart = false;
+        while (!flagStart) {
+          if (
+            // eslint-disable-next-line no-await-in-loop
+            await ServerStatusController.isStart(extension.getServerStatus())
+          ) {
+            stopProgressBar = true;
+            statusBarItem.text = '$(check) greet';
+            flagStart = true;
           }
-          ServerStatusController.start();
-          let flagStart = false;
-          while (!flagStart) {
-            if (
-              // eslint-disable-next-line no-await-in-loop
-              await ServerStatusController.isStart(extension.getServerStatus())
-            ) {
-              stopProgressBar = true;
-              extension.getServerStatus()?.setStatus('start');
-              extension.setServerStatus(extension.getServerStatus());
-              statusBarItem.text = '$(check) greet';
-              flagStart = true;
-            }
-          }
-        })
-        .catch(() => {
-          // TO DO handling when the extension needs to be stopped
-        }),
+        }
+      }),
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -72,26 +67,20 @@ export async function activate(context: vscode.ExtensionContext) {
   } else if (!RuntimeController.isInstalledModel()) {
     statusBarItem.text = '$(sync~spin) Installing greet';
     await Promise.all([
-      RuntimeController.downloadModel()
-        .then(async () => {
-          ServerStatusController.start();
-          let flagStart = false;
-          while (!flagStart) {
-            if (
-              // eslint-disable-next-line no-await-in-loop
-              await ServerStatusController.isStart(extension.getServerStatus())
-            ) {
-              stopProgressBar = true;
-              extension.getServerStatus()?.setStatus('start');
-              extension.setServerStatus(extension.getServerStatus());
-              statusBarItem.text = '$(check) greet';
-              flagStart = true;
-            }
+      RuntimeController.downloadModel().then(async () => {
+        ServerStatusController.start(extension.getServerStatus());
+        let flagStart = false;
+        while (!flagStart) {
+          if (
+            // eslint-disable-next-line no-await-in-loop
+            await ServerStatusController.isStart(extension.getServerStatus())
+          ) {
+            stopProgressBar = true;
+            statusBarItem.text = '$(check) greet';
+            flagStart = true;
           }
-        })
-        .catch(() => {
-          // TO DO handling when the extension needs to be stopped
-        }),
+        }
+      }),
       vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -113,7 +102,7 @@ export async function activate(context: vscode.ExtensionContext) {
     ]);
   } else {
     statusBarItem.text = '$(sync~spin) Starting greet';
-    ServerStatusController.start();
+    ServerStatusController.start(extension.getServerStatus());
   }
 
   let flagStart = false;
@@ -121,12 +110,42 @@ export async function activate(context: vscode.ExtensionContext) {
     // eslint-disable-next-line no-await-in-loop
     if (await ServerStatusController.isStart(extension.getServerStatus())) {
       stopProgressBar = true;
-      extension.getServerStatus()?.setStatus('start');
-      extension.setServerStatus(extension.getServerStatus());
       statusBarItem.text = '$(check) greet';
       flagStart = true;
     }
   }
+
+  const serverStatusCommand = vscode.commands.registerCommand(
+    'serverStatus',
+    async () => {
+      if (extension.getServerStatus()?.getStatus() === 'start') {
+        ServerStatusController.stop(extension.getServerStatus());
+        // extension.getServerStatus()?.setStatus('stop');
+        diagnosticCollection.clear();
+        statusBarItem.text = '$(debug-continue) greet';
+        statusBarItem.backgroundColor = new vscode.ThemeColor(
+          'statusBarItem.errorBackground',
+        );
+      } else if (extension.getServerStatus()?.getStatus() === 'stop') {
+        ServerStatusController.start(extension.getServerStatus());
+        statusBarItem.text = '$(sync~spin) Starting greet';
+        statusBarItem.backgroundColor = '';
+        let flag = false;
+        while (!flag) {
+          if (
+            // eslint-disable-next-line no-await-in-loop
+            await ServerStatusController.isStart(extension.getServerStatus())
+          ) {
+            stopProgressBar = true;
+            statusBarItem.text = '$(check) greet';
+            statusBarItem.backgroundColor = '';
+            flag = true;
+          }
+        }
+      }
+    },
+  );
+  context.subscriptions.push(serverStatusCommand);
 
   // eslint-disable-next-line operator-linebreak
   const diagnosticCollection =
@@ -136,12 +155,16 @@ export async function activate(context: vscode.ExtensionContext) {
   const disposable = vscode.workspace.onDidChangeTextDocument(
     debounce(async (event: vscode.TextDocumentChangeEvent) => {
       if (isPythonFile(event.document)) {
-        globalDiagnostics[event.document.uri.fsPath] =
-          await GreetFileController.analyzer(
-            extension.getServerStatus(),
-            diagnosticCollection,
-            event.document,
-          );
+        if (await ServerStatusController.isStart(extension.getServerStatus())) {
+          statusBarItem.text = '$(sync~spin) greet';
+          globalDiagnostics[event.document.uri.fsPath] =
+            await GreetFileController.analyzer(
+              extension.getServerStatus(),
+              diagnosticCollection,
+              event.document,
+            );
+          statusBarItem.text = '$(check) greet';
+        }
       }
     }, 1000),
   );
@@ -153,13 +176,17 @@ export async function activate(context: vscode.ExtensionContext) {
         const diagnostics = globalDiagnostics[document.uri.fsPath];
         if (diagnostics) {
           diagnosticCollection.set(document.uri, diagnostics);
-        } else {
+        } else if (
+          await ServerStatusController.isStart(extension.getServerStatus())
+        ) {
+          statusBarItem.text = '$(sync~spin) greet';
           globalDiagnostics[document.uri.fsPath] =
             await GreetFileController.analyzer(
               extension.getServerStatus(),
               diagnosticCollection,
               document,
             );
+          statusBarItem.text = '$(check) greet';
         }
       }
     },
@@ -168,5 +195,6 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+  //  extension.getServerStatus()?.setStatus('stop');
   ServerStatusController.stop(extension.getServerStatus());
 }

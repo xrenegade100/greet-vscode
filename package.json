@@ -27,6 +27,12 @@
         "priority": 100,
         "text": ""
       }
+    ],
+    "commands": [
+      {
+        "command": "serverStatus",
+        "title": "server status"
+      }
     ]
   },
   "scripts": {

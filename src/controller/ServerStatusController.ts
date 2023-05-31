@@ -5,7 +5,7 @@ import { chmodSync } from 'fs';
 import ServerStatus from '../model/ServerStatus';
 
 class ServerStatusController {
-  public static start(): boolean {
+  public static start(server: ServerStatus | undefined): boolean {
     const greetCmdPath = path.join(
       (process.platform === 'win32'
         ? process.env.APPDATA
@@ -23,14 +23,15 @@ class ServerStatusController {
     childProcess.exec(`${greetCmdPath} -s`, (err) => {
       console.log(err);
     });
+    server?.setStatus('start');
     return true;
   }
 
   public static async stop(server: ServerStatus | undefined): Promise<void> {
     server?.setStatus('stop');
-    await axios.get(
-      `http://${server?.getHostname()}:${server?.getPort()}/quit`,
-    );
+    await axios
+      .get(`http://${server?.getHostname()}:${server?.getPort()}/quit`)
+      .catch(() => {});
   }
 
   public static async isStart(
