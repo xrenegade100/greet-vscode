@@ -11,27 +11,29 @@ class GreetFileController {
     diagnosticCollection: vscode.DiagnosticCollection,
     document: vscode.TextDocument,
   ): Promise<readonly vscode.Diagnostic[] | undefined> {
-    try {
-      const response = await axios.post(
-        `http://${server?.getHostname()}:${server?.getPort()}/predict`,
-        {
-          code: document.getText(),
-        },
-      );
+    await axios
+      .post(`http://${server?.getHostname()}:${server?.getPort()}/predict`, {
+        code: document.getText(),
+      })
+      // eslint-disable-next-line consistent-return
+      .then((response) => {
+        if (response.data) {
+          const greetIssue: GreetIssue[] = this.fromResponse(response.data);
+          diagnosticCollection.set(document.uri, this.report(greetIssue));
+          return diagnosticCollection.get(document.uri);
+        }
+      })
+      .catch((err) => {
+        if (err.code === 'ECONNREFUSED') {
+          vscode.window.showErrorMessage(
+            'Error during greet analysis, possibly due to a lack of server connection.',
+          );
+          throw new Error(
+            'Error during greet analysis, possibly due to a lack of server connection.',
+          );
+        }
+      });
 
-      if (response.data) {
-        const greetIssue: GreetIssue[] = this.fromResponse(response.data);
-        diagnosticCollection.set(document.uri, this.report(greetIssue));
-        return diagnosticCollection.get(document.uri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(
-        'Error during greet analysis, possibly due to a lack of server connection.',
-      );
-      throw new Error(
-        'Error during greet analysis, possibly due to a lack of server connection.',
-      );
-    }
     return undefined;
   }
 
