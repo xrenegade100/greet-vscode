@@ -20,7 +20,7 @@ class RuntimeController {
   private static destinationFolder =
     process.platform === 'win32' ? process.env.APPDATA : process.env.HOME;
 
-  public static async download() {
+  public static async downloadRuntime() {
     const fileName = path.basename(
       process.platform === 'win32' ? this.urlInstallWin : this.urlInstallLinux,
     );
@@ -37,28 +37,7 @@ class RuntimeController {
       .then(async (response) => {
         fs.mkdirSync(this.destinationFolder as string, { recursive: true });
         await FileManager.saveFile(response, filePath).then(async () => {
-          await FileManager.unZipFolder(filePath).then(async () => {
-            await axios
-              .get(this.urlModel, {
-                responseType: 'stream',
-              })
-              .then(async (responseModel) => {
-                fs.mkdirSync(path.join(os.homedir(), '.greet'), {
-                  recursive: true,
-                });
-                await FileManager.saveFile(
-                  responseModel,
-                  path.join(os.homedir(), '.greet', 'greet'),
-                );
-              })
-              .catch((err) => {
-                console.log(err);
-                vscode.window.showErrorMessage(
-                  'Error during extension installation, possibly due to a lack of internet connection. Please try again.',
-                );
-                throw new Error('Error during extension installation.');
-              });
-          });
+          await FileManager.unZipFolder(filePath);
         });
       })
       .catch(() => {
@@ -69,12 +48,42 @@ class RuntimeController {
       });
   }
 
-  public static isInstalled(): boolean {
+  public static async downloadModel() {
+    await axios
+      .get(this.urlModel, {
+        responseType: 'stream',
+      })
+      .then(async (responseModel) => {
+        fs.mkdirSync(path.join(os.homedir(), '.greet'), {
+          recursive: true,
+        });
+        await FileManager.saveFile(
+          responseModel,
+          path.join(os.homedir(), '.greet', 'greet'),
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        vscode.window.showErrorMessage(
+          'Error during extension installation, possibly due to a lack of internet connection. Please try again.',
+        );
+        throw new Error('Error during extension installation.');
+      });
+  }
+
+  public static isInstalledRuntime(): boolean {
     const fileName = path.basename(
       process.platform === 'win32' ? this.urlInstallWin : this.urlInstallLinux,
     );
     const filePath = path.join(this.destinationFolder as string, fileName);
     if (fs.existsSync(filePath.substring(0, filePath.length - 4))) {
+      return true;
+    }
+    return false;
+  }
+
+  public static isInstalledModel(): boolean {
+    if (fs.existsSync(path.join(os.homedir(), '.greet', 'greet'))) {
       return true;
     }
     return false;

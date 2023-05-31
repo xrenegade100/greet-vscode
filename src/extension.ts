@@ -24,10 +24,55 @@ export async function activate(context: vscode.ExtensionContext) {
   let stopProgressBar = false;
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
-  if (!RuntimeController.isInstalled()) {
+  if (!RuntimeController.isInstalledRuntime()) {
     statusBarItem.text = '$(sync~spin) Installing greet';
     await Promise.all([
-      RuntimeController.download()
+      RuntimeController.downloadRuntime()
+        .then(async () => {
+          if (!RuntimeController.isInstalledModel()) {
+            await RuntimeController.downloadModel();
+          }
+          ServerStatusController.start();
+          let flagStart = false;
+          while (!flagStart) {
+            if (
+              // eslint-disable-next-line no-await-in-loop
+              await ServerStatusController.isStart(extension.getServerStatus())
+            ) {
+              stopProgressBar = true;
+              extension.getServerStatus()?.setStatus('start');
+              extension.setServerStatus(extension.getServerStatus());
+              statusBarItem.text = '$(check) greet';
+              flagStart = true;
+            }
+          }
+        })
+        .catch(() => {
+          // TO DO handling when the extension needs to be stopped
+        }),
+      vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Installing greet',
+          cancellable: false,
+        },
+        async (progress) => {
+          const totalSteps = 100;
+          let currentStep = 0;
+          while (currentStep < totalSteps && !stopProgressBar) {
+            progress.report({ increment: 1 });
+            // eslint-disable-next-line no-await-in-loop, no-promise-executor-return
+            await new Promise((resolve) => setTimeout(resolve, 2300));
+            currentStep++;
+          }
+          vscode.window.showInformationMessage('Installing greet ended');
+        },
+      ),
+    ]);
+  } else if (!RuntimeController.isInstalledModel()) {
+    statusBarItem.text = '$(sync~spin) Installing greet';
+    await Promise.all([
+      RuntimeController.downloadModel()
         .then(async () => {
           ServerStatusController.start();
           let flagStart = false;
