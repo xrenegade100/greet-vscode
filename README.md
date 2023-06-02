@@ -1,4 +1,4 @@
-# greet
+# greet-vsode
 
 ## Description
 
@@ -9,11 +9,11 @@ This Visual Studio Code extension detects linguistic antipatterns in Python sour
 - Detects linguistic antipatterns in Python code.
 - Provides real-time feedback and notifications when antipatterns are detected.
 - Currently detects the following antipatterns:
-  - **Get More Than Accessor**: A getter that performs actions other than returning the corresponding attribute
   - **Not implemented condition**: The comments of a method suggest a conditional behaviour that is not implemented in the code. When the implementation is default this should be documented
   - **Method signature and comment are opposite**: The declaration of a method is in contradiction with its documentation
   - **Attribute signature and comment are opposite**: The
-    declaration of an attribute contradicts its documentation.
+    declaration of an attribute contradicts its documentation
+  - **Get More Than Accessor**: A getter that performs actions other than returning the corresponding attribute _(actually not detected, but the model has data to recognize it)_
 
 ## Installation
 
