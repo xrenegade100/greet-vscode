@@ -1,7 +1,7 @@
 {
   "name": "greet",
   "displayName": "Greet",
-  "publisher": "Mantra Coding",
+  "publisher": "DomenicoAntonioGioia",
   "description": "Extensions to leverage the power of the 'greet' AI model to detect linguistic antipattern in python code, directly into your IDE",
   "version": "1.0.0",
   "engines": {
