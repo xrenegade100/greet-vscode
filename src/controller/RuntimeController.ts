@@ -15,7 +15,7 @@ class RuntimeController {
     'https://huggingface.co/mantra-coding/greet-runtime/resolve/main/greet-cli-linux-0.0.1-alpha.1.zip';
 
   private static urlModel =
-    'https://huggingface.co/mantra-coding/alBERTo/resolve/main/alBERTo-v1.0.0';
+    'https://huggingface.co/mantra-coding/alBERTo/resolve/main/greet-cli-model';
 
   private static destinationFolder =
     process.platform === 'win32' ? process.env.APPDATA : process.env.HOME;
